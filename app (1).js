@@ -44,6 +44,8 @@ const fillBase = document.getElementById('fill-base');
 const fillIcon = document.getElementById('fill-icon');
 const dlIconBtn = document.getElementById('dl-icon');
 const dlBaseBtn = document.getElementById('dl-base');
+const dlPresetBtn = document.getElementById('dl-preset');
+const uploadError = document.getElementById('upload-error');
 const emptyState = document.getElementById('empty-state');
 const viewerHint = document.getElementById('viewer-hint');
 
@@ -51,7 +53,7 @@ const viewerHint = document.getElementById('viewer-hint');
 const wrap = document.getElementById('canvas-wrap');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 500);
-camera.position.set(22, 20, 26);
+camera.position.set(13, 22, 15);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -62,7 +64,7 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.minDistance = 12;
 controls.maxDistance = 90;
-controls.target.set(0, TOTAL_H / 2, 0);
+controls.target.set(0, -TOTAL_H / 2, 0);
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.65));
 const key = new THREE.DirectionalLight(0xffffff, 1.1);
@@ -330,7 +332,10 @@ function rebuild() {
   const { baseGroup, iconGroup } = buildKeycap();
   capGroup = new THREE.Group();
   capGroup.add(baseGroup, iconGroup);
-  capGroup.rotation.x = 0; // Y already up; model built flat-side at Y=0 = "down" once printed
+  // The icon layer sits at local Y=0..0.8, the stem socket opening at
+  // the top (Y≈4.5). Flip 180° so the ICON faces the camera by default
+  // instead of the stem-socket cavity (that cross-shaped "dent" you saw).
+  capGroup.rotation.x = Math.PI;
   scene.add(capGroup);
 
   state._baseGroup = baseGroup;
@@ -340,6 +345,7 @@ function rebuild() {
   viewerHint.style.display = 'block';
   dlIconBtn.disabled = false;
   dlBaseBtn.disabled = false;
+  dlPresetBtn.disabled = false;
 }
 
 // ---------------------------------------------------------------
@@ -375,4 +381,34 @@ dlBaseBtn.addEventListener('click', () => {
 dlIconBtn.addEventListener('click', () => {
   if (!state._iconGroup) return;
   exportGroup(state._iconGroup, 'keycap-icon.stl');
+});
+
+// ---------------------------------------------------------------
+// Bambu Studio process preset — low infill, few walls, small part
+// defaults, so both STLs slice fast and light on filament.
+// Import in Bambu Studio via: Process settings → the wrench icon →
+// Import preset, then select this file.
+// ---------------------------------------------------------------
+function buildPresetJSON() {
+  return {
+    name: "Keycap Forge - low material",
+    inherits: "0.20mm Standard @BBL X1C",
+    layer_height: "0.2",
+    wall_loops: "2",
+    sparse_infill_density: "8%",
+    sparse_infill_pattern: "grid",
+    top_shell_layers: "3",
+    bottom_shell_layers: "2",
+    ironing_type: "no ironing",
+    from: "User"
+  };
+}
+
+dlPresetBtn.addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(buildPresetJSON(), null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'keycap-print-settings.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 });
