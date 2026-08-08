@@ -200,9 +200,10 @@
       <div class="dropzone" id="dropzone">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0-12 4 4m-4-4-4 4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         <div class="dz-title" id="dz-title">Drop image or click to upload</div>
-        <div class="dz-sub">PNG, JPG or SVG · transparent background works best</div>
+        <div class="dz-sub">.svg only · must be square (1:1)</div>
       </div>
-      <input type="file" id="file-input" accept="image/*">
+      <input type="file" id="file-input" accept=".svg,image/svg+xml">
+      <p class="note" id="upload-error" style="color:var(--danger);display:none;margin-top:10px"></p>
     </div>
 
     <div class="field">
@@ -246,8 +247,9 @@
     <div class="actions">
       <button class="btn primary" id="dl-icon" disabled>Download icon.stl (2nd color)</button>
       <button class="btn" id="dl-base" disabled>Download base.stl (1st color)</button>
+      <button class="btn" id="dl-preset" disabled>Download print-settings.json</button>
     </div>
-    <p class="note">Two separate STL files, same as your Tinkercad pixel-art workflow — import both into Bambu Studio and assign a filament per object. Already oriented flat-side-down: no supports, no rotating needed in the slicer.</p>
+    <p class="note">Two STL files, same as your Tinkercad pixel-art workflow — import both into Bambu Studio and assign a filament per object. Already oriented flat-side-down: no supports needed. The settings file is an optional Bambu process preset (low infill, 2 walls) you can import so it doesn't default to 100% density.</p>
   </aside>
 
   <main class="viewer">
